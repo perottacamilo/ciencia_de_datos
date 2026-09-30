@@ -20,6 +20,7 @@
 
 # install.packages("tidyverse")   # descomentar solo la primera vez
 library(tidyverse)
+library(dplyr)
 
 # Definimos la ruta base del proyecto (modificar según cada usuario)
 # Por ejemplo, en mi computadora lo tengo cargado en el siguiente lugar 
@@ -45,13 +46,19 @@ head(establecimientos)
 dim(establecimientos)    # filas x columnas
 
 # Nombres de las columnas
-names(establecimientos)
+#Contenido de las variables
+unique(establecimientos$anio)
+unique(establecimientos$provincia)
 
 # --- 3. select() — Elegir columnas ------------------------------------------
 
 # Nos quedamos con las columnas que vamos a usar
 establecimientos_sel <- establecimientos |>
-  select(anio, provincia, departamento, letra, Empleo, Establecimientos)
+  select(anio, provincia, departamento, letra, Empleo, Establecimientos) %>% 
+filter(provincia == "Buenos Aires", anio == 2022)
+
+unique(establecimientos_sel$anio)
+unique(establecimientos_sel$provincia)
 
 head(establecimientos_sel)
 
@@ -59,7 +66,12 @@ head(establecimientos_sel)
 
 # Empleo en la provincia de Buenos Aires, año 2022
 establecimientos_sel |>
-  filter(provincia == "Buenos Aires", anio == 2022)
+  filter(provincia == "Buenos Aires", anio == 2022) %>% 
+  
+
+
+rm(list = ls())
+
 
 # --- 5. mutate() — Crear nuevas columnas ------------------------------------
 
@@ -70,6 +82,21 @@ establecimientos_sel <- establecimientos_sel |>
   )
 
 head(establecimientos_sel)
+
+establecimientos2 <- establecimientos_sel %>% 
+  filter(departamento %in% c("Chascomús", "Navarro", "San Isidro"))
+
+
+mean(establecimientos2$emp_por_estab)
+
+establecimientos2 %>% 
+  filter(departamento == "Chascomús") %>% 
+  mean(as.numeric(emp_por_estab))
+
+establecimientos2 %>%
+  group_by(departamento) %>%
+  summarise(media_variable = mean(emp_por_estab, na.rm = TRUE))
+
 
 # --- 6. arrange() — Ordenar filas --------------------------------------------
 
@@ -90,6 +117,17 @@ empleo_provincia <- establecimientos_sel |>
   arrange(desc(empleo_total))
 
 empleo_provincia
+
+empleo_dep <- establecimientos_sel |>
+  filter(anio == 2022) |>
+  group_by(departamento) |>
+  summarise(
+    empleo_total = sum(Empleo, na.rm = TRUE)
+  ) |>
+  arrange(desc(empleo_total))
+
+empleo_dep
+
 
 # --- 8. Guardar resultados ---------------------------------------------------
 
